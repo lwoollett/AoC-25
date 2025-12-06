@@ -1,6 +1,6 @@
 const std = @import("std");
 const Allocator = std.mem.Allocator;
-const List = std.ArrayList;
+const ArrayList = std.ArrayList;
 const Map = std.AutoHashMap;
 const StrMap = std.StringHashMap;
 const BitSet = std.DynamicBitSet;
@@ -13,43 +13,98 @@ const data = @embedFile("data/day04.txt");
 const Coords = struct {
     x: usize,
     y: usize,
+    value: bool,
 };
 
 // This is a tricky one to think about
 // I reckon we do [][] as the grid
 // Maybe do a helper function to check neighbors?
-
-fn checkNeighbors(grid: [][]u8, coords: Coords, limit: u8) bool {
-    // Placeholder implementation
-    var grid_h: usize = grid.len;
-    var grid_w: usize = grid[coords.x].len;
+fn checkNeighbors(grid: []ArrayList(Coords), coords: Coords, limit: u8) bool {
+    const width = grid[coords.x].items.len;
+    const height = grid.len;
     // ***** Neighbor offsets ******
     // ? x x x --- -1,-1, -1,0, -1,1
     // ? x o x ---  0,-1,        0,1
     // ? x x x ---  1,-1,  1,0,  1,1
     // *****************************
-
     var count: i8 = 0;
 
+    // Define bounds (clamped to grid edges)
+    const start_x = if (coords.x == 0) 0 else coords.x - 1;
+    const end_x = @min(coords.x + 1, height - 1);
+    const start_y = if (coords.y == 0) 0 else coords.y - 1;
+    const end_y = @min(coords.y + 1, width - 1);
 
-    for ([-1, 0, 1]) |dx| {
-        for ([-1, 0, 1]) |dy| {
-            if (dx == 0 and dy == 0) continue; // Skip Self
+    // Iterate through valid neighbors
+    for (start_x..end_x + 1) |x| {
+        for (start_y..end_y + 1) |y| {
+            if (x == coords.x and y == coords.y) {
+                continue;
+            }
 
-            const nx: usize = coords.x + @as(usize, dx);
-            const ny: usize = coords.y + @as(usize, dy);
-
-            if (nx < grid_h and ny < grid_w) {
-                if (grid[nx][ny] == 1) {
-                    return true;
+            if (grid[x].items[y].value) {
+                count += 1;
+                if (count >= limit) {
+                    return false;
                 }
             }
         }
     }
-    return false;
+
+    return true;
 }
 
-pub fn main() !void {}
+pub fn main() !void {
+    const limit: u8 = 4;
+    var lines = std.mem.tokenizeAny(u8, data, "\r\n");
+    var count: usize = 0;
+    var grid = try ArrayList(ArrayList(Coords)).initCapacity(gpa, 512);
+    defer grid.deinit(gpa);
+    while (lines.next()) |line| {
+        var row = try ArrayList(Coords).initCapacity(gpa, 512);
+        for (line, 0..) |c, i| {
+            if (c == '.') {
+                try row.append(gpa, Coords{ .x = count, .y = i, .value = false });
+            } else {
+                try row.append(gpa, Coords{ .x = count, .y = i, .value = true });
+            }
+        }
+        try grid.append(gpa, row);
+        count += 1;
+    }
+    // Now we have the grid, we can process it
+    var paper_rolls: i16 = 0;
+    var paper_rolls_removed: i16 = 0;
+    var paper_rolls_removed_current: i16 = -1;
+
+    // ! Leave part one as is
+    for (grid.items) |row| {
+        for (row.items, 0..) |cell, j| {
+            if (cell.value and checkNeighbors(grid.items, cell, limit)) {
+                paper_rolls += 1;
+                paper_rolls_removed += 1;
+                row.items[j].value = false;
+            }
+        }
+    }
+
+    // * Just wrap it in a while loop until we can't move any more paper
+    while (paper_rolls_removed_current != 0) {
+        paper_rolls_removed_current = 0;
+        for (grid.items) |row| {
+            for (row.items, 0..) |cell, j| {
+                if (cell.value and checkNeighbors(grid.items, cell, limit)) {
+                    paper_rolls_removed += 1;
+                    paper_rolls_removed_current += 1;
+                    row.items[j].value = false;
+                }
+            }
+        }
+    }
+
+    print("Part 1: {d}\n", .{paper_rolls});
+    print("Part 2: {d}\n", .{paper_rolls_removed});
+}
 
 // Useful stdlib functions
 const tokenizeAny = std.mem.tokenizeAny;

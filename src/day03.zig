@@ -10,29 +10,57 @@ const gpa = util.gpa;
 
 const data = @embedFile("data/day03.txt");
 
+const numWithIdx = struct {
+    num: i8,
+    index: i8,
+};
 pub fn main() !void {
     var batterycapacity: i64 = 0;
     var lines = std.mem.tokenizeAny(u8, data, "\r\n");
     while (lines.next()) |line| {
         // Convert line to []i8
-        // ! TODO: Optimise alloc
-        // ! Zig 15 ArrayList allocator is weird
-        // ! Docs also aren't updated lmao
-        var nums = try List(i8).initCapacity(gpa, 64);
-        defer nums.deinit(gpa);
-        // Each char in input is a digit
-        for (line) |c| {
-            const digit = @as(i8, @intCast(c - '0'));
-            try nums.append(gpa, digit);
-        }
-        // Sort nums desc
-        std.mem.sort(i8, nums.items, {}, std.sort.desc(i8));
-        // Take first 2
-        print("Top two digits: {d}, {d}\n", .{ nums.items[0], nums.items[1] });
-        batterycapacity += nums.items[0] + nums.items[1];
-        // * We're gucci gaming
+        batterycapacity += try getVoltageForLine(line);
     }
     print("Part 1 Result: {d}\n", .{batterycapacity});
+}
+
+fn getVoltageForLine(line: []const u8) !i64 {
+    // ! TODO: Optimise alloc (probably less than 64 on input)
+    // ! Zig 15 ArrayList allocator is weird
+    // ! Docs also aren't updated lmao
+    var nums = try List(i8).initCapacity(gpa, 128);
+    defer nums.deinit(gpa);
+    // Each char in input is a digit
+    for (line) |c| {
+        const digit = @as(i8, @intCast(c - '0'));
+        try nums.append(gpa, digit);
+    }
+    // !! We're not allowed to sort the input array
+    // So we have to find the top two digits manually
+    var first_max: numWithIdx = .{ .num = -1, .index = -1 };
+    var second_max: numWithIdx = .{ .num = -1, .index = -1 };
+    // We want to optimise to get the highest number possible as the first, with the second number being a lesser prize
+    // Second_max has to be AFTER first_max in the input list
+    // Do two passes to find first and second max
+    // First max has to have at least one number after it
+    var idx: i8 = 0;
+    for (nums.items[0 .. nums.items.len - 1]) |n| {
+        if (n > first_max.num) {
+            first_max = .{ .num = n, .index = @as(i8, idx) };
+        }
+        idx += 1;
+    }
+    idx = 0;
+    for (nums.items[@as(usize, @intCast(first_max.index + 1))..]) |n| {
+        if (n > second_max.num) {
+            second_max = .{ .num = n, .index = @as(i8, idx) };
+        }
+        idx += 1;
+    }
+    print("Top two digits: {d}, {d}\n", .{ first_max.num, second_max.num });
+    // Instead of doing weird string shit just x10 the first val
+    return (first_max.num * 10) + second_max.num;
+    // * We're gucci gaming
 }
 
 // Useful stdlib functions

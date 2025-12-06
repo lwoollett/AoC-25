@@ -12,12 +12,15 @@ const data = @embedFile("data/day06.txt");
 
 const Problem = struct {
     input: []u32,
+    input_rtl: []u32,
     operator: u8,
 };
 
 pub fn main() !void {
     var lines = std.mem.splitAny(u8, data, "\r\n");
     var problems = try List(Problem).initCapacity(gpa, 256);
+    var total: u64 = 0;
+    var total_rtl: u64 = 0;
     defer {
         for (problems.items) |problem| gpa.free(problem.input);
         problems.deinit(gpa);
@@ -97,8 +100,6 @@ pub fn main() !void {
 
     // Solve and print results
     for (problems.items, 0..) |problem, idx| {
-        defer gpa.free(problem.input);
-
         const result = switch (problem.operator) {
             '+' => blk: {
                 var sum: u64 = 0;
@@ -116,8 +117,25 @@ pub fn main() !void {
             },
         };
 
-        print("Problem {d}: {any} {c} = {d}\n", .{ idx + 1, problem.input, problem.operator, result });
+        const rtl_res = switch (problem.operator) {
+            '+' => blk: {
+                var sum: u64 = 0;
+                for (problem.input_rtl) |num| sum += num;
+                break :blk sum;
+            },
+            '*' => blk: {
+                var product: u64 = 1;
+                for (problem.input_rtl) |num| product *= num;
+                break :blk product;
+            },
+            else => 0,
+        };
+
+        total += result;
+        total_rtl += rtl_res;
     }
+    print("Part 1: {d}\n", .{total});
+    print("Part 2: {d}\n", .{total_rtl});
 }
 
 // Useful stdlib functions

@@ -10,8 +10,114 @@ const gpa = util.gpa;
 
 const data = @embedFile("data/day06.txt");
 
+const Problem = struct {
+    input: []u32,
+    operator: u8,
+};
+
 pub fn main() !void {
-    
+    var lines = std.mem.splitAny(u8, data, "\r\n");
+    var problems = try List(Problem).initCapacity(gpa, 256);
+    defer {
+        for (problems.items) |problem| gpa.free(problem.input);
+        problems.deinit(gpa);
+    }
+
+    var grid = try List([]u32).initCapacity(gpa, 256);
+    defer {
+        for (grid.items) |row| gpa.free(row);
+        grid.deinit(gpa);
+    }
+
+    // Parse each line into numbers
+    while (lines.next()) |line| {
+        if (line.len == 0) continue;
+
+        var tokens = tokenizeSeq(u8, line, " ");
+        var row = try List(u32).initCapacity(gpa, 16);
+
+        // When parsing the operators row
+        while (tokens.next()) |token| {
+            if (token.len == 1 and (token[0] == '+' or token[0] == '*')) {
+                const op: u8 = token[0];
+                try row.append(gpa, op);
+            } else {
+                const num = try std.fmt.parseInt(u32, token, 10);
+                try row.append(gpa, num);
+            }
+        }
+
+        // Ensure all rows have the same number of columns
+        if (grid.items.len > 0 and row.items.len != grid.items[0].len) {
+            print("Error: Row {d} has {d} columns, expected {d}\n", .{ grid.items.len + 1, row.items.len, grid.items[0].len });
+            return error.InvalidInput;
+        }
+
+        try grid.append(gpa, try row.toOwnedSlice(gpa));
+    }
+
+    if (grid.items.len == 0) {
+        print("No data found\n", .{});
+        return;
+    }
+
+    const num_rows = grid.items.len;
+    const num_cols = grid.items[0].len;
+
+    // Last row contains operators (+ or *)
+    if (num_rows < 2) {
+        print("Need at least 2 rows (inputs + operators)\n", .{});
+        return error.InvalidInput;
+    }
+
+    const operators_row = grid.items[num_rows - 1];
+
+    // Process each column into a problem
+    for (0..num_cols) |col_idx| {
+        var input_numbers = try List(u32).initCapacity(gpa, num_rows - 1);
+
+        // Collect input numbers from each row except the last
+        for (0..num_rows - 1) |row_idx| {
+            const num = grid.items[row_idx][col_idx];
+            try input_numbers.append(gpa, num);
+        }
+
+        const operator_char = operators_row[col_idx];
+        const operator: u8 = switch (operator_char) {
+            0 => '+',
+            1 => '*',
+            else => @as(u8, @intCast(operator_char)),
+        };
+
+        try problems.append(gpa, Problem{
+            .input = try input_numbers.toOwnedSlice(gpa),
+            .operator = operator,
+        });
+    }
+
+    // Solve and print results
+    for (problems.items, 0..) |problem, idx| {
+        defer gpa.free(problem.input);
+
+        const result = switch (problem.operator) {
+            '+' => blk: {
+                var sum: u64 = 0;
+                for (problem.input) |num| sum += num;
+                break :blk sum;
+            },
+            '*' => blk: {
+                var product: u64 = 1;
+                for (problem.input) |num| product *= num;
+                break :blk product;
+            },
+            else => {
+                print("Unknown operator '{c}' (value {d}) in problem {d}\n", .{ problem.operator, problem.operator, idx + 1 });
+                continue;
+            },
+        };
+
+        print("Problem {d}: {any} {c} = {d}\n", .{ idx + 1, problem.input, problem.operator, result });
+    }
 }
 
 // Useful stdlib functions

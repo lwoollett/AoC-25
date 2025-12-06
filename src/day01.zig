@@ -11,7 +11,35 @@ const gpa = util.gpa;
 const data = @embedFile("data/day01.txt");
 
 pub fn main() !void {
-    
+    var score: i16 = 0;
+    var current: i32 = 50;
+
+    // Load file data as array of lines
+    var lines = tokenizeAny(u8, data, "\r\n");
+
+    // For Line in lines
+    while (lines.next()) |line| {
+        // Split first char of line, parse second half as int
+        // Do we bother using like.. int16 here or something?
+        const l_or_r = line[0..1];
+        const init_val = try std.fmt.parseInt(i32, line[1..], 10);
+        // ! If value is >= 100, do a remainder to keep it in bounds
+        const clean_val = @rem(init_val, 100);
+        // ! Rotation Logic
+        if (std.mem.eql(u8, l_or_r, "L")) {
+            current = @mod(current - clean_val, 100);
+            print("Move Left {d} from {d} to {d}\n", .{ clean_val, current + clean_val, current });
+        } else if (std.mem.eql(u8, l_or_r, "R")) {
+            current = @mod(current + clean_val, 100);
+            print("Move Right {d} from {d} to {d}\n", .{ clean_val, current - clean_val, current });
+        }
+        // Now we need to check if the result is 0
+        if (current == 0) {
+            print("Current is 0, Adding Point\n", .{});
+            score += 1;
+        }
+    }
+    print("Password: {d}\n", .{score});
 }
 
 // Useful stdlib functions

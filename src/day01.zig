@@ -78,7 +78,3 @@ test "rotatePosition - basic functionality" {
     try std.testing.expect(r2.new_position == 30);
     try std.testing.expect(r2.zero_crossings == 0);
 }
-
-// Generated from template/template.zig.
-// Run `zig build generate` to update.
-// Only unmodified days will be updated.

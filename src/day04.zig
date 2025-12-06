@@ -10,9 +10,46 @@ const gpa = util.gpa;
 
 const data = @embedFile("data/day04.txt");
 
-pub fn main() !void {
-    
+const Coords = struct {
+    x: usize,
+    y: usize,
+};
+
+// This is a tricky one to think about
+// I reckon we do [][] as the grid
+// Maybe do a helper function to check neighbors?
+
+fn checkNeighbors(grid: [][]u8, coords: Coords, limit: u8) bool {
+    // Placeholder implementation
+    var grid_h: usize = grid.len;
+    var grid_w: usize = grid[coords.x].len;
+    // ***** Neighbor offsets ******
+    // ? x x x --- -1,-1, -1,0, -1,1
+    // ? x o x ---  0,-1,        0,1
+    // ? x x x ---  1,-1,  1,0,  1,1
+    // *****************************
+
+    var count: i8 = 0;
+
+
+    for ([-1, 0, 1]) |dx| {
+        for ([-1, 0, 1]) |dy| {
+            if (dx == 0 and dy == 0) continue; // Skip Self
+
+            const nx: usize = coords.x + @as(usize, dx);
+            const ny: usize = coords.y + @as(usize, dy);
+
+            if (nx < grid_h and ny < grid_w) {
+                if (grid[nx][ny] == 1) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
 }
+
+pub fn main() !void {}
 
 // Useful stdlib functions
 const tokenizeAny = std.mem.tokenizeAny;

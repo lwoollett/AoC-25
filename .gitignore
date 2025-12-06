@@ -1,4 +1,4 @@
 .zig-cache/
 zig-out/
 build_runner.zig
-data/*.txt
+src/data/*.txt

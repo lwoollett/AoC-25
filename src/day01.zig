@@ -11,7 +11,10 @@ const gpa = util.gpa;
 const data = @embedFile("data/day01.txt");
 
 pub fn main() !void {
+    const boundMax = 99;
+    const boundMin = 0;
     var score: i16 = 0;
+    var score_p2: i16 = 0;
     var current: i32 = 50;
 
     // Load file data as array of lines
@@ -19,27 +22,44 @@ pub fn main() !void {
 
     // For Line in lines
     while (lines.next()) |line| {
+        var lineScore = 0;
         // Split first char of line, parse second half as int
         // Do we bother using like.. int16 here or something?
         const l_or_r = line[0..1];
         const init_val = try std.fmt.parseInt(i32, line[1..], 10);
-        // ! If value is >= 100, do a remainder to keep it in bounds
-        const clean_val = @rem(init_val, 100);
         // ! Rotation Logic
         if (std.mem.eql(u8, l_or_r, "L")) {
-            current = @mod(current - clean_val, 100);
-            print("Move Left {d} from {d} to {d}\n", .{ clean_val, current + clean_val, current });
+            if (current + init_val >= 100) {
+                if (current + init_val == 100) {
+                    print("Exact 100 Detected\n", .{});
+                    // No change
+                } else {
+                    // We now have to figure out how many times we've overflowed to adjust the score
+                    const overflows = (current + init_val) / 100;
+                    print("Overflows Detected: {d}\n", .{overflows});
+                    lineScore += parseInt(i16, overflows);
+                }
+                // Over / Under flow Detected
+            }
+            current = @mod(current - init_val, 100);
+            print("Move Left {d} from {d} to {d}\n", .{ init_val, current + init_val, current });
         } else if (std.mem.eql(u8, l_or_r, "R")) {
-            current = @mod(current + clean_val, 100);
-            print("Move Right {d} from {d} to {d}\n", .{ clean_val, current - clean_val, current });
+            current = @mod(current + init_val, 100);
+            print("Move Right {d} from {d} to {d}\n", .{ init_val, current - init_val, current });
         }
         // Now we need to check if the result is 0
         if (current == 0) {
             print("Current is 0, Adding Point\n", .{});
             score += 1;
         }
+
+        score_p2 += lineScore;
     }
+
+    score_p2 += score;
+
     print("Password: {d}\n", .{score});
+    print("Part 2 Password: {d}\n", .{score_p2});
 }
 
 // Useful stdlib functions

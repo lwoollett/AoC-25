@@ -10,11 +10,6 @@ const gpa = util.gpa;
 
 const data = @embedFile("data/day03.txt");
 
-const numWithIdx = struct {
-    num: i8,
-    index: i8,
-};
-
 pub fn main() !void {
     var batterycapacityp1: i64 = 0;
     var batterycapacityp2: i64 = 0;
@@ -29,8 +24,6 @@ pub fn main() !void {
 }
 
 fn getVoltageForLine(line: []const u8, keep: i8) !i64 {
-
-    // Use ArrayList(u8) for stack of digits (as integers 0-9)
     var stack = try std.ArrayList(u8).initCapacity(gpa, 128);
     defer stack.deinit(gpa);
 
@@ -59,6 +52,8 @@ fn getVoltageForLine(line: []const u8, keep: i8) !i64 {
 
     return result;
 }
+
+// TODO: Could probably add tests here but hey, it works
 
 // Useful stdlib functions
 const tokenizeAny = std.mem.tokenizeAny;

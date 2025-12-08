@@ -78,11 +78,39 @@ pub fn main() !void {
     // Process each column into a problem
     for (0..num_cols) |col_idx| {
         var input_numbers = try List(u32).initCapacity(gpa, num_rows - 1);
+        var input_rtl = try List(u32).initCapacity(gpa, num_rows - 1);
+
+        var max_digits: u32 = 0;
 
         // Collect input numbers from each row except the last
         for (0..num_rows - 1) |row_idx| {
             const num = grid.items[row_idx][col_idx];
             try input_numbers.append(gpa, num);
+            var xx = @as(usize, @intCast(std.math.log10_int(num))) + 1;
+            if (xx > max_digits) {
+                max_digits = xx;
+            }
+        }
+
+        var grid = [][]u8{};
+        for (0..num_rows - 1) |row_idx| {
+            const num = input_numbers.items[row_idx];
+            var digit_buf: [32]u8 = undefined;
+            const num_str = std.fmt.bufPrint(&digit_buf, "{d}", .{num}) catch unreachable;
+
+            // Pad with following -'s to max_digits
+            var padded: [32]u8 = undefined;
+            const padding_needed = max_digits - @as(u32, num_str.len);
+            for (padding_needed..max_digits) |i| {
+                padded[i] = '-';
+            }
+        }
+        // Initialize grid for RTL representation
+
+        // Now we have a max digits, we can create RTL numbers
+        // Read each column, using a nested array to store digits
+        for (0..num_rows - 1) |row_index| {
+            const num = input_numbers.items[row_index];
         }
 
         const operator_char = operators_row[col_idx];

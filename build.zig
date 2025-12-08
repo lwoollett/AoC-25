@@ -95,6 +95,25 @@ pub fn build(b: *Build) void {
         run_all.dependOn(&run_cmd.step);
     }
 
+    // Set up benchmark executable
+    const benchmark = b.addExecutable(.{
+        .name = "benchmark_all",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("src/benchmark_all.zig"),
+            .target = target,
+            .optimize = mode,
+        }),
+    });
+    linkObject(b, benchmark);
+
+    const benchmark_cmd = b.addRunArtifact(benchmark);
+    if (b.args) |args| {
+        benchmark_cmd.addArgs(args);
+    }
+
+    const benchmark_step = b.step("benchmark", "Run benchmarks for all days");
+    benchmark_step.dependOn(&benchmark_cmd.step);
+
     // Set up tests for util.zig
     {
         const test_util = b.step("test_util", "Run tests in util.zig");

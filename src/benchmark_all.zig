@@ -7,6 +7,7 @@ const day02 = @import("day02.zig");
 const day03 = @import("day03.zig");
 const day04 = @import("day04.zig");
 const day05 = @import("day05.zig");
+const day06 = @import("day06.zig");
 
 const BenchmarkResult = struct {
     day: u8,
@@ -80,29 +81,34 @@ pub fn main() !void {
     defer results.deinit(std.heap.page_allocator);
 
     // Benchmark each day
-    std.debug.print("Day 01... ", .{});
+    std.debug.print("Day 01... \n", .{});
     const day01_result = try benchmarkDay(1, day01.main, runs);
     try results.append(std.heap.page_allocator, day01_result);
     std.debug.print("✓\n", .{});
 
-    std.debug.print("Day 02... ", .{});
+    std.debug.print("Day 02... \n", .{});
     const day02_result = try benchmarkDay(2, day02.main, runs);
     try results.append(std.heap.page_allocator, day02_result);
     std.debug.print("✓\n", .{});
 
-    std.debug.print("Day 03... ", .{});
+    std.debug.print("Day 03... \n", .{});
     const day03_result = try benchmarkDay(3, day03.main, runs);
     try results.append(std.heap.page_allocator, day03_result);
     std.debug.print("✓\n", .{});
 
-    std.debug.print("Day 04... ", .{});
+    std.debug.print("Day 04... \n", .{});
     const day04_result = try benchmarkDay(4, day04.main, runs);
     try results.append(std.heap.page_allocator, day04_result);
     std.debug.print("✓\n", .{});
 
-    std.debug.print("Day 05... ", .{});
+    std.debug.print("Day 05... \n", .{});
     const day05_result = try benchmarkDay(5, day05.main, runs);
     try results.append(std.heap.page_allocator, day05_result);
+    std.debug.print("✓\n", .{});
+
+    std.debug.print("Day 06... \n", .{});
+    const day06_result = try benchmarkDay(6, day06.main, runs);
+    try results.append(std.heap.page_allocator, day06_result);
     std.debug.print("✓\n", .{});
 
     // Print results table
@@ -122,9 +128,7 @@ pub fn main() !void {
         const max_str = formatTime(result.max_time_ns, &max_buf);
         const total_str = formatTime(result.total_time_ns, &total_buf);
 
-        std.debug.print("│   {:0>2}    │ {s:>9}   │ {s:>9}   │ {s:>9}   │ {s:>9}   │\n", .{
-            result.day, avg_str, min_str, max_str, total_str
-        });
+        std.debug.print("│   {:0>2}    │ {s:>9}   │ {s:>9}   │ {s:>9}   │ {s:>9}   │\n", .{ result.day, avg_str, min_str, max_str, total_str });
     }
 
     std.debug.print("╰─────────┴─────────────┴─────────────┴─────────────┴─────────────╯\n", .{});

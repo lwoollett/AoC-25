@@ -86,32 +86,31 @@ pub fn main() !void {
         for (0..num_rows - 1) |row_idx| {
             const num = grid.items[row_idx][col_idx];
             try input_numbers.append(gpa, num);
-            var xx = @as(usize, @intCast(std.math.log10_int(num))) + 1;
+            const xx: u32 = @intCast(std.math.log10_int(num));
             if (xx > max_digits) {
                 max_digits = xx;
             }
         }
 
-        var grid = [][]u8{};
-        for (0..num_rows - 1) |row_idx| {
-            const num = input_numbers.items[row_idx];
-            var digit_buf: [32]u8 = undefined;
-            const num_str = std.fmt.bufPrint(&digit_buf, "{d}", .{num}) catch unreachable;
+        // for (0..num_rows - 1) |row_idx| {
+        //     const num = input_numbers.items[row_idx];
+        //     var digit_buf: [32]u8 = undefined;
+        //     const num_str = std.fmt.bufPrint(&digit_buf, "{d}", .{num}) catch unreachable;
 
-            // Pad with following -'s to max_digits
-            var padded: [32]u8 = undefined;
-            const padding_needed = max_digits - @as(u32, num_str.len);
-            for (padding_needed..max_digits) |i| {
-                padded[i] = '-';
-            }
-        }
+        //     // Pad with following -'s to max_digits
+        //     var padded: [32]u8 = undefined;
+        //     const padding_needed: u32 = max_digits - @as(u32, num_str.len);
+        //     for (padding_needed..max_digits) |i| {
+        //         padded[i] = '-';
+        //     }
+        // }
         // Initialize grid for RTL representation
 
         // Now we have a max digits, we can create RTL numbers
         // Read each column, using a nested array to store digits
-        for (0..num_rows - 1) |row_index| {
-            const num = input_numbers.items[row_index];
-        }
+        // for (0..num_rows - 1) |row_index| {
+        //     const num = input_numbers.items[row_index];
+        // }
 
         const operator_char = operators_row[col_idx];
         const operator: u8 = switch (operator_char) {
@@ -122,6 +121,7 @@ pub fn main() !void {
 
         try problems.append(gpa, Problem{
             .input = try input_numbers.toOwnedSlice(gpa),
+            .input_rtl = try input_rtl.toOwnedSlice(gpa),
             .operator = operator,
         });
     }

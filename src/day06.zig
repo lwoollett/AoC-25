@@ -18,7 +18,7 @@ const Problem = struct {
 
 pub fn main() !void {
     var lines = std.mem.splitAny(u8, data, "\r\n");
-    var problems = try List(Problem).initCapacity(gpa, 256);
+    var problems: List(Problem) = .empty;
     var total: u64 = 0;
     var total_rtl: u64 = 0;
     defer {
@@ -26,7 +26,7 @@ pub fn main() !void {
         problems.deinit(gpa);
     }
 
-    var grid = try List([]u32).initCapacity(gpa, 256);
+    var grid: List([]u32) = .empty;
     defer {
         for (grid.items) |row| gpa.free(row);
         grid.deinit(gpa);
@@ -37,7 +37,7 @@ pub fn main() !void {
         if (line.len == 0) continue;
 
         var tokens = tokenizeSeq(u8, line, " ");
-        var row = try List(u32).initCapacity(gpa, 16);
+        var row: List(u32) = .empty;
 
         // When parsing the operators row
         while (tokens.next()) |token| {
@@ -77,8 +77,8 @@ pub fn main() !void {
 
     // Process each column into a problem
     for (0..num_cols) |col_idx| {
-        var input_numbers = try List(u32).initCapacity(gpa, num_rows - 1);
-        var input_rtl = try List(u32).initCapacity(gpa, num_rows - 1);
+        var input_numbers: List(u32) = .empty;
+        var input_rtl: List(u32) = .empty;
 
         var max_digits: u32 = 0;
 

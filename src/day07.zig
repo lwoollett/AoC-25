@@ -10,8 +10,24 @@ const gpa = util.gpa;
 
 const data = @embedFile("data/day07.txt");
 
+const Cells = enum { Start, Beam, Split, Empty };
+
+const Grid = struct {
+    cells: [][]Cells,
+    width: usize,
+    height: usize,
+};
+
 pub fn main() !void {
-    
+    // Oh boy oh dear a grid parsing problem.
+    // We're *probably* going to need to do some pathfinder (pathfinding) here
+    // Hopefully not kingmaker.
+    var lines = std.mem.tokenizeAny(u8, data, "\r\n");
+    var count: u8 = 0;
+    while (lines.next()) |_| {
+        count += 1;
+    }
+    print("N Lines: {}\n", .{count});
 }
 
 // Useful stdlib functions
